@@ -1,11 +1,12 @@
 import pandas as pd
 import requests
 
-def get_top_100_ids():
+def get_top_100_ids(amount=100):
     df = pd.read_csv('player_id_matches.csv', names=['ID', 'Matches played'])
     df = df.sort_values(by=['Matches played'], ascending=False)
 
-    top_100 = df.head(100)
+    if amount > 0:
+        top_100 = df.head(amount)
     top_100_id = top_100['ID'].tolist()
     
     return top_100_id, top_100
@@ -53,8 +54,8 @@ def get_all_games(ids):
         defaults.append(default)
     return HL, sixes, defaults
 
-def new_df():
-    ids, df = get_top_100_ids()
+def new_df(filename='', amount=100):
+    ids, df = get_top_100_ids(amount=amount)
     HL, sixes, defaults = get_all_games(ids)
     country = get_country(ids)
     name = get_name(ids)
@@ -65,7 +66,7 @@ def new_df():
     df["Defaults"] = defaults
     df["Country"] = country
     print(df.head(10))
-    df.to_csv('player_stats.csv', index=False)
+    df.to_csv(filename, index=False)
 
-new_df()
+new_df(filename='player_stats_1000', amount=1000)
         
