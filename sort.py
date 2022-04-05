@@ -11,19 +11,16 @@ def get_top_100_ids(amount=100):
     
     return top_100_id, top_100
 
-def get_country(ids):
+def get_country_and_name(ids):
     countries = []
-    for id in ids:
-        player = requests.get('https://api.etf2l.org/player/{}.json?per_page=100&since=0'.format(id))
-        countries.append(player.json()['player']['country'])
-    return countries
-
-def get_name(ids):
     names = []
     for id in ids:
+        if id % 100 == 0:
+            print("1000 id's names and countries gathered")
         player = requests.get('https://api.etf2l.org/player/{}.json?per_page=100&since=0'.format(id))
+        countries.append(player.json()['player']['country'])
         names.append(player.json()['player']['name'])
-    return names
+    return countries, names
 
 def get_games(id, page='1', HLcount=0, sixescount=0, defaults=0):
     player_data = requests.get('https://api.etf2l.org/player/{}/results/{}.json?per_page=100&since=0'.format(id, page))
@@ -48,6 +45,8 @@ def get_all_games(ids):
     sixes = []
     defaults = []
     for id in ids:
+        if id % 1000 == 0:
+            print("1000 id's checked for games")
         HLgames, sixesgames, default = get_games(id)
         HL.append(HLgames)
         sixes.append(sixesgames)
@@ -57,8 +56,7 @@ def get_all_games(ids):
 def new_df(filename='', amount=100):
     ids, df = get_top_100_ids(amount=amount)
     HL, sixes, defaults = get_all_games(ids)
-    country = get_country(ids)
-    name = get_name(ids)
+    country, name = get_country_and_name(ids)
     
     df["Name"] = name
     df['Highlander games'] = HL
@@ -68,5 +66,5 @@ def new_df(filename='', amount=100):
     print(df.head(10))
     df.to_csv(filename, index=False)
 
-new_df(filename='player_stats_1000', amount=1000)
+new_df(filename='player_stats_full.csv', amount=34167)
         
