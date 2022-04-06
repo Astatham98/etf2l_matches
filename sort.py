@@ -1,5 +1,7 @@
 import pandas as pd
 import requests
+import time
+import datetime
 
 def get_top_100_ids(amount=100):
     df = pd.read_csv('player_id_matches.csv', names=['ID', 'Matches played'])
@@ -14,13 +16,21 @@ def get_top_100_ids(amount=100):
 def get_country_and_name(ids):
     countries = []
     names = []
+    days_since_joining = []
     for id in ids:
         if id % 100 == 0:
             print("1000 id's names and countries gathered")
         player = requests.get('https://api.etf2l.org/player/{}.json?per_page=100&since=0'.format(id))
         countries.append(player.json()['player']['country'])
         names.append(player.json()['player']['name'])
-    return countries, names
+        days_since_joining.append(get_date_joined(player))
+    return countries, names, days_since_joining
+
+def get_date_joined(player):
+    date_joined = player.json()['player']['registered']
+    difference = int(time.time()) - int(date_joined)
+    days = datetime.timedelta(seconds=difference)
+    return str(days.days)
 
 def get_games(id, page='1', HLcount=0, sixescount=0, defaults=0):
     player_data = requests.get('https://api.etf2l.org/player/{}/results/{}.json?per_page=100&since=0'.format(id, page))
@@ -53,18 +63,33 @@ def get_all_games(ids):
         defaults.append(default)
     return HL, sixes, defaults
 
+def edit_csv():
+    #Editable to add any data needed
+    df = pd.read_csv('player_stats_full.csv')
+    ids = df['ID'].tolist() 
+
+    days = []
+    for i, id in enumerate(ids):
+        if i % 1000 == 0:
+            print(f"{i} id's covered")
+        player = requests.get('https://api.etf2l.org/player/{}.json?per_page=100&since=0'.format(id))
+        days.append(get_date_joined(player))
+
+    df['Joined'] = days
+    df.to_csv('player_stats_full.csv')
+
 def new_df(filename='', amount=100):
     ids, df = get_top_100_ids(amount=amount)
     HL, sixes, defaults = get_all_games(ids)
-    country, name = get_country_and_name(ids)
+    country, name, joined = get_country_and_name(ids)
     
     df["Name"] = name
     df['Highlander games'] = HL
     df["6's games"] = sixes
     df["Defaults"] = defaults
     df["Country"] = country
+    df["Joined"] = joined
     print(df.head(10))
     df.to_csv(filename, index=False)
 
 new_df(filename='player_stats_full.csv', amount=34167)
-        
