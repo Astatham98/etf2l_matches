@@ -31,6 +31,3 @@ def search(count=100):
                 player_ids.writerow([i, matches])
 
 search(count=143520)
-
-
-#143520

@@ -92,7 +92,7 @@ def edit_csv():
         points.append(get_points(id))
 
     df['Points'] = points
-    df.to_csv('player_stats_full.csv')
+    df.to_csv('player_stats_full.csv', index=False)
 
 def new_df(filename='', amount=100):
     ids, df = get_top_100_ids(amount=amount)
