@@ -50,6 +50,23 @@ def get_games(id, page='1', HLcount=0, sixescount=0, defaults=0):
                 elif "Highlander" in category: HLcount += 1
             return get_games(id, page=str(player_data.json()['page']['page'] + 1), HLcount=HLcount, sixescount=sixescount, defaults=defaults)
 
+def get_points(id, page='1', points=0):
+    player_data = requests.get('https://api.etf2l.org/player/{}/results/{}.json?per_page=100&since=0'.format(id, page))
+    if player_data.status_code == 200:
+        results = player_data.json()['results']
+        if player_data.json()['page'].get('next_page_url', None) == None:
+            for result in results:
+                clan1 = result['clan1']['was_in_team']
+                if clan1: points += result['r1']
+                else: points += result['r2']
+            return points
+        else: 
+            for result in results:
+                clan1 = result['clan1']['was_in_team']
+                if clan1: points += result['r1']
+                else: points += result['r2']
+            return get_points(id, page=str(player_data.json()['page']['page'] + 1), points=points)
+
 def get_all_games(ids):
     HL = []
     sixes = []
@@ -68,14 +85,13 @@ def edit_csv():
     df = pd.read_csv('player_stats_full.csv')
     ids = df['ID'].tolist() 
 
-    days = []
+    points = []
     for i, id in enumerate(ids):
-        if i % 1000 == 0:
+        if i % 100 == 0:
             print(f"{i} id's covered")
-        player = requests.get('https://api.etf2l.org/player/{}.json?per_page=100&since=0'.format(id))
-        days.append(get_date_joined(player))
+        points.append(get_points(id))
 
-    df['Joined'] = days
+    df['Points'] = points
     df.to_csv('player_stats_full.csv')
 
 def new_df(filename='', amount=100):
@@ -92,4 +108,5 @@ def new_df(filename='', amount=100):
     print(df.head(10))
     df.to_csv(filename, index=False)
 
-new_df(filename='player_stats_full.csv', amount=34167)
+#new_df(filename='player_stats_full.csv', amount=34167)
+edit_csv()
