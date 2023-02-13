@@ -108,5 +108,5 @@ def new_df(filename='', amount=100):
     print(df.head(10))
     df.to_csv(filename, index=False)
 
-#new_df(filename='player_stats_full.csv', amount=34167)
-edit_csv()
+new_df(filename='player_stats_full.csv', amount=34167)
+#edit_csv()
