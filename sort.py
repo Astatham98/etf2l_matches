@@ -3,10 +3,9 @@ import requests
 import time
 import datetime
 
-def get_top_100_ids(amount=100):
-    df = pd.read_csv('player_id_matches.csv', names=['ID', 'Matches played'])
+def get_top_100_ids(amount=100, csv_to_read='player_id_matches.csv'):
+    df = pd.read_csv(csv_to_read, names=['ID', 'Matches played'])
     df = df.sort_values(by=['Matches played'], ascending=False)
-
     if amount > 0:
         top_100 = df.head(amount)
     top_100_id = top_100['ID'].tolist()
@@ -71,14 +70,17 @@ def get_all_games(ids):
     HL = []
     sixes = []
     defaults = []
-    for id in ids:
-        if id % 1000 == 0:
-            print("1000 id's checked for games")
+    points = []
+    print(ids)
+    for x,id in enumerate(ids):
+        if x % 10 == 0:
+            print(f"{x} id's checked for games")
         HLgames, sixesgames, default = get_games(id)
         HL.append(HLgames)
         sixes.append(sixesgames)
         defaults.append(default)
-    return HL, sixes, defaults
+        points.append(get_points(id))
+    return HL, sixes, defaults, points
 
 def edit_csv():
     #Editable to add any data needed
@@ -94,19 +96,21 @@ def edit_csv():
     df['Points'] = points
     df.to_csv('player_stats_full.csv', index=False)
 
-def new_df(filename='', amount=100):
-    ids, df = get_top_100_ids(amount=amount)
-    HL, sixes, defaults = get_all_games(ids)
+def new_df(input, filename='', amount=100):
+    ids, df = get_top_100_ids(amount=amount, csv_to_read=input)
+    HL, sixes, defaults, points = get_all_games(ids)
     country, name, joined = get_country_and_name(ids)
     
     df["Name"] = name
     df['Highlander games'] = HL
     df["6's games"] = sixes
+    df["Points"] = points
     df["Defaults"] = defaults
     df["Country"] = country
     df["Joined"] = joined
     print(df.head(10))
     df.to_csv(filename, index=False)
 
-new_df(filename='player_stats_full.csv', amount=34167)
+if __name__ == '__main__':
+    new_df(input='player_id_match_150724.csv', filename='player_stats_top_1000_150724.csv', amount=1000)
 #edit_csv()

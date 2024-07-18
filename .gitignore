@@ -1,0 +1,5 @@
+__pycache__/
+.vscode/
+venv/
+timecheckler.py
+top_1k_to_update.csv
